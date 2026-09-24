@@ -1,0 +1,28 @@
+# Orquestación y NLP
+langchain
+langchain-community
+
+# Procesamiento de documentos (Ingesta)
+pypdf
+unstructured
+markdown
+
+# Integración con la nube
+oci
+
+# Gestión de variables de entorno (para leer el archivo .env)
+python-dotenv
+
+# Liberías necesarias para trabajar con modelos de Google
+langchain-google-genai 
+google-generativeai
+
+# Librería necesaria para divider el texto y 
+langchain-text-splitters 
+
+# Librería necesaria para crear el Vector Store
+langchain_community 
+
+#Librería necesaria para la búsqueda eficiente de similitudes y el agrupamiento  de vectores
+faiss-cpu 
+
