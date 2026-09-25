@@ -1,0 +1,14 @@
+# Orquestación y NLP
+langchain
+langchain-community
+
+# Procesamiento de documentos (Ingesta)
+pypdf
+unstructured
+markdown
+
+# Integración con la nube
+oci
+
+# Gestión de variables de entorno (para leer el archivo .env)
+python-dotenv
