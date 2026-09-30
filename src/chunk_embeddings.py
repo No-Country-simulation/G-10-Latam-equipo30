@@ -1,5 +1,5 @@
-from theKeys import GEMINI_API_KEY
-from theModels import GEMINI_PRO, GEMINI_FLASH, GEMINI_EMBEDDINGS
+from the_keys import GEMINI_API_KEY
+from the_models import GEMINI_PRO, GEMINI_FLASH, GEMINI_EMBEDDINGS
 #from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_text_splitters import RecursiveCharacterTextSplitter
     

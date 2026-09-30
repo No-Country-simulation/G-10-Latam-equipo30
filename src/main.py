@@ -1,5 +1,5 @@
 from ingestion import process_document
-from ChunkEmbeddings import chunk_embeddings
+from chunk_embeddings import chunk_embeddings
 
 if __name__ == "__main__":
     # Ruta relativa considerando que ejecutamos desde la raíz del proyecto
