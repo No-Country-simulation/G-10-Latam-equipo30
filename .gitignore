@@ -23,3 +23,6 @@ Thumbs.db
 
 # Jupyter Notebooks checkpoints (por si utilizamos notebooks)
 .ipynb_checkpoints/
+
+# Índice vectorial FAISS (se regenera a partir de los documentos)
+vectorstore/
