@@ -15,7 +15,6 @@ python-dotenv
 
 # Liberías necesarias para trabajar con modelos de Google
 langchain-google-genai 
-google-generativeai
 
 # Librería necesaria para divider el texto y 
 langchain-text-splitters 
