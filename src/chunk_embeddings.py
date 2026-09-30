@@ -1,34 +1,50 @@
+import os
+
+from langchain_community.vectorstores import FAISS
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pydantic import SecretStr
 
 from the_keys import GEMINI_API_KEY
 from the_models import GEMINI_EMBEDDINGS
 
+# Carpeta donde se guarda el índice FAISS (relativa a donde se ejecuta el script).
+RUTA_VECTORSTORE = "vectorstore"
 
-def chunk_embeddings(docs):
 
-    print("\n--- chunk_embeddings -- Muestra del texto limpio ---")
-    print(docs[0].page_content[:300])
-
-    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-    docs_splits = splitter.split_documents(docs)
-
-    # Crear Embeddings
-    from langchain_google_genai import GoogleGenerativeAIEmbeddings
-
-    modelo_embeddings = GoogleGenerativeAIEmbeddings(
+def crear_modelo_embeddings():
+    """Modelo de embeddings compartido: crear y cargar el índice deben usar el mismo."""
+    return GoogleGenerativeAIEmbeddings(
         model=GEMINI_EMBEDDINGS,
         api_key=SecretStr(GEMINI_API_KEY) if GEMINI_API_KEY else None,
     )
 
-    # Generando el Vector Store
-    from langchain_community.vectorstores import FAISS
 
-    vectorstore = FAISS.from_documents(docs_splits, modelo_embeddings)
+def chunk_embeddings(docs, chunk_size=1000, chunk_overlap=100, ruta=RUTA_VECTORSTORE):
+    """Divide los documentos en chunks, genera sus embeddings y guarda el índice FAISS."""
+    if not docs:
+        raise ValueError("No hay documentos para procesar.")
 
-    retriever = vectorstore.as_retriever(
-        search_type="similarity_score_threshold",
-        search_kwargs={"score_threshold": 0.3, "k": 4},
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size, chunk_overlap=chunk_overlap
     )
+    docs_splits = splitter.split_documents(docs)
 
-    vectorstore.save_local("vectorstore")
+    vectorstore = FAISS.from_documents(docs_splits, crear_modelo_embeddings())
+    vectorstore.save_local(ruta)
+
+    return vectorstore
+
+
+def cargar_vectorstore(ruta=RUTA_VECTORSTORE):
+    """Carga el índice FAISS guardado para consultarlo (ej. desde el agente investigador)."""
+    if not os.path.isdir(ruta):
+        raise FileNotFoundError(
+            f"No existe el índice en '{ruta}'. Genéralo primero con chunk_embeddings()."
+        )
+
+    # allow_dangerous_deserialization: FAISS guarda metadatos con pickle.
+    # Es seguro solo porque el índice lo generamos nosotros; nunca cargar uno de terceros.
+    return FAISS.load_local(
+        ruta, crear_modelo_embeddings(), allow_dangerous_deserialization=True
+    )
