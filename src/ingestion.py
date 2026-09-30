@@ -47,15 +47,15 @@ def process_document(file_path: str) -> list[Document]:
     return cleaned_documents
 
 
-# if __name__ == "__main__":
-#     # Ruta relativa considerando que ejecutamos desde la raíz del proyecto
-#     sample_file = "data/documento_prueba.md"
+if __name__ == "__main__":
+    # Ruta relativa considerando que ejecutamos desde la raíz del proyecto
+    sample_file = "data/documento_prueba.md"
 
-#     try:
-#         docs = process_document(sample_file)
-#         print(f"Éxito: Se procesaron {len(docs)} páginas/fragmentos.")
-#         if docs:
-#             print("\n--- Muestra del texto limpio ---")
-#             print(docs[0].page_content[:300])
-#     except (OSError, ValueError) as e:
-#         print(f"Error de ejecución: {e}")
+    try:
+        docs = process_document(sample_file)
+        print(f"Éxito: Se procesaron {len(docs)} páginas/fragmentos.")
+        if docs:
+            print("\n--- Muestra del texto limpio ---")
+            print(docs[0].page_content[:300])
+    except (OSError, ValueError) as e:
+        print(f"Error de ejecución: {e}")
