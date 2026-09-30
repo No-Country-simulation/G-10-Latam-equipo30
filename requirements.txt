@@ -26,3 +26,5 @@ langchain_community
 #Librería necesaria para la búsqueda eficiente de similitudes y el agrupamiento  de vectores
 faiss-cpu 
 
+# SDK nuevo de Google (lo usa tests/check_models.py para listar modelos)
+google-genai

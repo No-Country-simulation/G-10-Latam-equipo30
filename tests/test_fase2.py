@@ -1,58 +1,82 @@
-import os
 import sys
-import glob
+import tempfile
+from pathlib import Path
 
-base_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.abspath(os.path.join(base_dir, "../src")))
+RAIZ = Path(__file__).resolve().parent.parent
+sys.path.append(str(RAIZ / "src"))
 
-from chunk_embeddings import chunk_embeddings
-from ingestion import process_document
+from chunk_embeddings import cargar_vectorstore, chunk_embeddings  # noqa: E402
+from ingestion import process_document  # noqa: E402
+
+CARPETA_DATOS = RAIZ / "data"
+EXTENSIONES = {".pdf", ".md", ".txt"}
+
+# Preguntas con respuesta conocida: (pregunta, archivo del que debe salir el fragmento).
+# Solo se revisan las de los archivos que estén en data/.
+CONSULTAS_ESPERADAS = [
+    (
+        "¿Cuál es el límite por noche para el alojamiento en hoteles?",
+        "politica_reembolsos_viajes_gastos.pdf",
+    ),
+    (
+        "¿Qué componente permite que una subred privada acceda a internet "
+        "sin recibir conexiones entrantes?",
+        "arquitectura_redes_vcn_oci.md",
+    ),
+]
+
+
+def fallar(mensaje):
+    """Muestra el error y termina con código 1 para que el fallo no pase desapercibido."""
+    print(f"\n❌ FALLO: {mensaje}")
+    sys.exit(1)
 
 
 def main():
-    # Resolver la ruta absoluta de la carpeta data
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    data_dir = os.path.join(base_dir, "../data")
-
-    # Buscar todos los archivos soportados
-    files_to_process = []
-    for ext in ("*.md", "*.pdf", "*.txt"):
-        files_to_process.extend(glob.glob(os.path.join(data_dir, ext)))
-
-    if not files_to_process:
-        print(f"Error: No se encontraron archivos de prueba en {data_dir}")
-        return
-
-    print(
-        f"Archivos encontrados a procesar: {[os.path.basename(f) for f in files_to_process]}\n"
+    archivos = sorted(
+        p for p in CARPETA_DATOS.iterdir() if p.suffix.lower() in EXTENSIONES
     )
+    if not archivos:
+        fallar(f"no hay archivos de prueba en {CARPETA_DATOS}")
 
-    all_docs = []
-    print("1. Iniciando ingesta de documentos...")
-    for file_path in files_to_process:
-        filename = os.path.basename(file_path)
+    print(f"Archivos a procesar: {[a.name for a in archivos]}\n")
+
+    print("1. Ingesta de documentos...")
+    docs = []
+    for archivo in archivos:
         try:
-            docs = process_document(file_path)
-            print(
-                f"   - {filename}: se extrajeron {len(docs)} fragmentos/páginas base."
-            )
-            all_docs.extend(docs)
+            docs_archivo = process_document(str(archivo))
         except Exception as e:
-            print(f"   - Error procesando {filename}: {e}")
+            fallar(f"no se pudo procesar {archivo.name}: {e}")
+        print(f"   - {archivo.name}: {len(docs_archivo)} páginas/fragmentos base.")
+        docs.extend(docs_archivo)
 
-    if not all_docs:
-        print("Error: No se pudo extraer texto de ningún archivo.")
-        return
+    nombres = {a.name for a in archivos}
+    consultas = [(p, f) for p, f in CONSULTAS_ESPERADAS if f in nombres]
 
-    print(
-        f"\n2. Generando Chunks y Embeddings ({len(all_docs)} elementos base totales), y guardando en FAISS..."
-    )
-    try:
-        chunk_embeddings(all_docs)
-        print("\n   ¡Éxito! El VectorStore se ha guardado en la carpeta 'vectorstore'.")
-        print("   La Fase 2 está funcionando correctamente en lote.")
-    except Exception as e:
-        print(f"\nError durante los Embeddings: {e}")
+    # Carpeta temporal: el test no pisa el vectorstore/ real y se borra al terminar.
+    with tempfile.TemporaryDirectory() as carpeta_temporal:
+        print(f"\n2. Chunks, embeddings e índice FAISS ({len(docs)} elementos base)...")
+        try:
+            chunk_embeddings(docs, ruta=carpeta_temporal)
+            vectorstore = cargar_vectorstore(carpeta_temporal)
+        except Exception as e:
+            fallar(f"error al generar o cargar el índice: {e}")
+        print("   ✅ Índice generado y cargado.")
+
+        print("\n3. Recuperación con preguntas de respuesta conocida...")
+        if not consultas:
+            print("   ⚠️  Ningún archivo de data/ tiene preguntas definidas; se omite.")
+        for pregunta, esperado in consultas:
+            resultados = vectorstore.similarity_search(pregunta, k=1)
+            if not resultados:
+                fallar(f"la búsqueda no devolvió nada para: {pregunta}")
+            fuente = Path(resultados[0].metadata.get("source", "")).name
+            if fuente != esperado:
+                fallar(f"'{pregunta}' trajo un fragmento de '{fuente}', se esperaba '{esperado}'")
+            print(f"   ✅ {pregunta} -> {fuente}")
+
+    print("\n✅ Fase 2 OK: ingesta, embeddings, índice y recuperación funcionan.")
 
 
 if __name__ == "__main__":
