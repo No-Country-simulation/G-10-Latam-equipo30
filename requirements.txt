@@ -1,6 +1,5 @@
 # Orquestación y NLP
 langchain
-langchain-community
 
 # Procesamiento de documentos (Ingesta)
 pypdf
