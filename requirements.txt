@@ -26,3 +26,7 @@ faiss-cpu
 
 # SDK nuevo de Google (lo usa tests/check_models.py para listar modelos)
 google-genai
+
+# Orquestación multiagente y validación estructurada (Hito 3)
+langgraph
+pydantic
