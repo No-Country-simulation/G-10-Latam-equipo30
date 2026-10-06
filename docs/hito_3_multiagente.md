@@ -38,7 +38,9 @@ Comprueban el grafo real con respuestas simuladas: umbral, feedback, agotamiento
 
 ## Integración
 
-Esta rama parte de `feature/F02-rag-chunking-embeddings-vectorstore` porque F02 todavía no llegó a develop. El PR se dirige a F02 para revisar únicamente Hito 3. Después el equipo puede integrar F02 completa a develop o acordar una feature F03 desde develop actualizado. No fusionar saltándose la revisión del equipo.
+La entrega se divide en PR encadenados: F02 → develop; F03 → F02; F04 → F03; F05 → F04; orquestación E03 → F05. Cada diff muestra solamente su entrega. Los PR posteriores están bloqueados por la integración anterior: al integrar F02 en develop, redirigir F03 a develop; repetir con F04, F05 y E03 cuando su dependencia esté en develop. No fusionar los PR posteriores sobre las ramas anteriores: sus bases provisionales sirven para revisar sin mezclar los diffs.
+
+Referencias Kanban: F03 #12/PBI #15; F04 #13/PBI #16; F05 #14/PBI #17; orquestación #4. Estos PR están en revisión, no Done. Se conserva el PR monolítico original como referencia histórica, reemplazado por las entregas separadas. No fusionar saltándose la revisión del equipo.
 
 ## Validación del 6 de octubre de 2026
 
